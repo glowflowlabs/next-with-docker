@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: dev.Dockerfile
+       args:
+        - NODE_ENV=development
     container_name: nextjs_app
     restart: unless-stopped
     ports:
@@ -11,6 +13,7 @@ services:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public&sslmode=prefer
     volumes:
+      - .:/app
       - /app/node_modules
       - /app/.next
     networks:
@@ -18,7 +21,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
+    user: "node"
   db:
     image: postgres:15-alpine
     container_name: postgres_db
@@ -32,16 +35,28 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 5
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432" # Restringe acesso apenas ao host local
 
 volumes:
   postgres-data:
+    driver: local
 
 networks:
   app-network:
     driver: bridge
+    attachable: true # Permite conectar containers posteriormente
+
+# Melhoria de performance para builds
+x-cache: &cache
+  cache_from:
+    - nextjs_app
+    - postgres_db
+
+x-env: &env
+  env_file:
+    - .env

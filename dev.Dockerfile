@@ -1,4 +1,6 @@
-# Estágio de desenvolvimento (para hot-reload e testes)
+# ----------------------------------------
+# Estágio 1: Builder (Desenvolvimento/Compilação)
+# ----------------------------------------
 FROM node:18-alpine AS dev
 
 WORKDIR /app

@@ -1,8 +1,7 @@
-# Estágio de construção (gera artefatos de produção)
-FROM node:18-alpine AS base
-
-# Step 1. Rebuild the source code only when needed
-FROM base AS builder
+# ----------------------------------------
+# Estágio 1: Builder (Desenvolvimento/Compilação)
+# ----------------------------------------
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -44,14 +43,16 @@ RUN \
 
 # Note: It is not necessary to add an intermediate step that does a full copy of `node_modules` here
 
-# Estágio de produção (otimizado para deploy)
-FROM base AS production
+# ----------------------------------------
+# Estágio 2: Runner (Produção Otimizada)
+# ----------------------------------------
+FROM base AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV production
 
-# Don't run production as root
+# Configura usuário não-root
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 USER nextjs
@@ -62,6 +63,10 @@ COPY --from=builder /app/public ./public
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+
+# Instala APENAS dependências de produção
+RUN npm ci --omit=dev
 
 # Environment variables must be redefined at run time
 # ARG ENV_VARIABLE
@@ -77,3 +82,4 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 EXPOSE 3000
 
 CMD ["node", "server.js"]
+# CMD ["npm", "start"]
