@@ -1,7 +1,7 @@
 # ----------------------------------------
 # Estágio 1: Builder (Desenvolvimento/Compilação)
 # ----------------------------------------
-FROM node:18-alpine AS dev
+FROM    :18-alpine AS dev
 
 WORKDIR /app
 

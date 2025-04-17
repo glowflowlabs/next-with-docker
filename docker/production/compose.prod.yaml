@@ -2,11 +2,11 @@ services:
   next-app:
     container_name: next-app
     build:
-      context: .
+      context: ../../
       dockerfile: prod.Dockerfile
     restart: always
     ports:
-      - 3000:3000
+      - 3003:3000
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public&sslmode=prefer
